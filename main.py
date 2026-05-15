@@ -1,3 +1,4 @@
+#prueba de commit conexion
 import customtkinter as ctk #libreria para el gui
 
 #establece los colores de la interfaz
