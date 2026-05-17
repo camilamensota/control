@@ -1,5 +1,5 @@
-#prueba de commit conexion
 import customtkinter as ctk #libreria para el gui
+from tkinter import messagebox # Importamos las ventanas de alerta
 
 #establece los colores de la interfaz
 ctk.set_appearance_mode("dark")
@@ -10,60 +10,33 @@ app = ctk.CTk()
 app.geometry("900x600")
 app.title("Control de gastos personales")
 
-#creamos varias "cajas" para poder organizar y seccionar la ventana, son como los div en html por decir un ejemplo
-
 #creamos una caja de encabezado
-header_frame = ctk.CTkFrame(app)#tiene a la app dentro ya que es una ventana dentro de otra
-header_frame.pack(
-    fill="x", #para que el frame ocupe todo el ancho
-    pady=10 #pady se refiere al margen de arriba y abajo 
-)
+header_frame = ctk.CTkFrame(app)
+header_frame.pack(fill="x", pady=10)
 
 #creamos una caja para los forms
 form_frame = ctk.CTkFrame(app)
-form_frame.pack(
-    fill="x",
-    pady=10
-)
-
-#creamos caja para el historial
-form_historial = ctk.CTkFrame(app)
-form_historial.pack(
-    fill="x",
-    pady=10
-)
+form_frame.pack(fill="x", pady=10)
 
 #titulo y formato de la ventana
 titulo = ctk.CTkLabel(
-    header_frame, #ponemos el frame de header ya que queremos que el titulo este dentro del header
+    header_frame, 
     text="Control de gastos personales",
     font=("Arial", 30)
 )
 titulo.pack(pady=20)
 
 #aca va el guardado del registro de ingresos, gastos y saldo actual
-label_ingreso = ctk.CTkLabel(
-    header_frame,
-    text="Ingresos: $0",
-    font=("Arial",24)
-)
+label_ingreso = ctk.CTkLabel(header_frame, text="Ingresos: $0", font=("Arial",24))
 label_ingreso.pack(pady=10)
-#gasto
-label_gastos = ctk.CTkLabel(
-    header_frame,
-    text="Gastos: $0",
-    font=("Arial",24)
-)
+
+label_gastos = ctk.CTkLabel(header_frame, text="Gastos: $0", font=("Arial",24))
 label_gastos.pack(pady=10)
-#saldo actual
-label_saldo = ctk.CTkLabel(
-    header_frame,
-    text="Saldo Actual: $0",
-    font=("Arial", 24)
-)
+
+label_saldo = ctk.CTkLabel(header_frame, text="Saldo Actual: $0", font=("Arial", 24))
 label_saldo.pack(pady=10)
 
-#ComboBox nos sirve para elegir entre varias opciones sin tener que teclearlo, aca solo daremos opcion de ingreso o gasto
+#ComboBox para tipo
 combo_tipo = ctk.CTkComboBox(
     form_frame,
     values=["Ingreso", "Gasto"],
@@ -71,15 +44,26 @@ combo_tipo = ctk.CTkComboBox(
 )
 combo_tipo.pack(pady=10)
 
-#agragamos una categoria para que el usuario tenga un conocimiento de en donde gasta su dinero
-entry_categoria = ctk.CTkEntry(
+#ComboBox para categoria
+lista_categorias = [
+    "Comida y bebidas", "Supermercado", "Transporte", "Comisiones y cargos", 
+    "Créditos y financiación", "Cuentas y servicios", "Deportes", "Donaciones", 
+    "Educación", "Electrónica", "Entretenimiento", "Hogar", "Impuestos", 
+    "Inversiones", "Mascotas", "Retiros en efectivo", "Ropa", 
+    "Salud y cuidado personal", "Servicios profesionales", "Shopping", 
+    "Suscripciones", "Tarjeta de crédito", "Transferencias a cuentas propias", 
+    "Viajes", "Otro"
+]
+
+combo_categoria = ctk.CTkComboBox(
     form_frame,
-    placeholder_text="Categoría",
+    values=lista_categorias,
     width=300
 )
-entry_categoria.pack(pady=10)
+combo_categoria.set("Selecciona una categoría") 
+combo_categoria.pack(pady=10)
 
-#espacio para que el usuario ingrese su gasto o su ingreso
+#Monto
 entry_monto = ctk.CTkEntry(
     form_frame,
     placeholder_text="Monto",
@@ -87,7 +71,7 @@ entry_monto = ctk.CTkEntry(
 )
 entry_monto.pack(pady=10)
 
-#aca el usuario puede dar una descripcion de lo que ingreso o gasto
+#Descripción
 entry_descripcion = ctk.CTkEntry(
     form_frame,
     placeholder_text="Descripción",
@@ -95,27 +79,52 @@ entry_descripcion = ctk.CTkEntry(
 )
 entry_descripcion.pack(pady=10)
 
-#guarda la información de los movimientos
+# ==========================================
+# FUNCIÓN DE VALIDACIÓN ACTUALIZADA
+# ==========================================
+def validar_y_guardar():
+    tipo = combo_tipo.get()
+    categoria = combo_categoria.get()
+    monto_texto = entry_monto.get()
+    descripcion = entry_descripcion.get()
+
+    # 1. Validamos la categoría SOLO si es un Gasto
+    if tipo == "Gasto":
+        if categoria == "Selecciona una categoría" or categoria == "":
+            messagebox.showwarning("Faltan datos", "Por favor, selecciona una categoría para el gasto.")
+            return
+    else:
+        # Si es un Ingreso y dejaron el texto por defecto, lo limpiamos
+        if categoria == "Selecciona una categoría":
+            categoria = "Sin categoría" # O puedes dejarlo como "" (vacío) si lo prefieres
+
+    # 2. Validamos que el monto no esté vacío
+    if monto_texto == "":
+        messagebox.showwarning("Faltan datos", "Por favor, ingresa un monto.")
+        return
+
+    # 3. Validamos que el monto sea un número válido
+    try:
+        monto_numerico = float(monto_texto)
+        if monto_numerico <= 0:
+            messagebox.showerror("Error", "El monto debe ser mayor a cero.")
+            return
+    except ValueError:
+        messagebox.showerror("Error de formato", "El monto debe ser un número válido. (Ej. 150 o 150.50)")
+        return
+
+    # 4. Mensaje de éxito temporal
+    messagebox.showinfo("¡Perfecto!", f"Datos listos para la BD:\nTipo: {tipo}\nCategoría: {categoria}\nMonto: ${monto_numerico}\nDescripción: {descripcion}")
+
+# ==========================================
+
+# Botón para guardar
 btn_guardar = ctk.CTkButton(
     form_frame,
-    text="Guardar movimiento"
+    text="Guardar movimiento",
+    command=validar_y_guardar
 )
 btn_guardar.pack(pady=15)
 
-label_historial = ctk.CTkLabel(
-    app,
-    text="Historial",
-    font=("Arial",15)
-)
-label_historial.pack(pady=5)
-
-#le da al usuario un historial de todo lo que lleva
-textbox = ctk.CTkTextbox(
-    app,
-    width=700,
-    height=200
-)
-textbox.pack(pady=10)
-
-#ejecuta la ventana
+# Ejecuta la ventana
 app.mainloop()
