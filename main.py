@@ -42,8 +42,10 @@ label_saldo.pack(pady=10)
 combo_tipo = ctk.CTkComboBox(
     form_frame,
     values=["Ingreso", "Gasto"],
-    width=300
+    width=300,
+    state="readonly"
 )
+combo_tipo.set("Ingreso")
 combo_tipo.pack(pady=10)
 
 #ComboBox para categoria
@@ -60,7 +62,8 @@ lista_categorias = [
 combo_categoria = ctk.CTkComboBox(
     form_frame,
     values=lista_categorias,
-    width=300
+    width=300,
+    state="readonly"
 )
 combo_categoria.set("Selecciona una categoría") 
 combo_categoria.pack(pady=10)
@@ -132,7 +135,50 @@ def validar_y_guardar():
         # Por si ocurre algún error inesperado con el archivo o la BD
         messagebox.showerror("Error de Base de Datos", f"No se pudo guardar el movimiento: {e}")
 
+    try:
+        #Limpias los campos de texto para el siguiente registro
+        entry_monto.delete(0, 'end')
+        entry_descripcion.delete(0, 'end')
+        
+        # ¡AQUÍ! Llamas a la función para que los números de arriba se actualicen al instante
+        actualizar_pantalla_totales()
+        
+    except Exception as e:
+        messagebox.showerror("Error", f"No se pudo guardar: {e}")
+
 # ==========================================
+
+def actualizar_pantalla_totales():
+    try:
+        # 1. Traemos todos los registros guardados usando tu módulo database
+        registros = database.obtener_movimientos()
+        
+        total_ingresos = 0.0
+        total_gastos = 0.0
+        
+        # 2. Recorremos fila por fila para hacer las sumas
+        for fila in registros:
+            # Según tu BD: fila[1] es el 'tipo' y fila[3] es el 'monto'
+            tipo = fila[1]
+            monto = fila[3]
+            
+            if tipo == "Ingreso":
+                total_ingresos += monto
+            elif tipo == "Gasto":
+                total_gastos += monto
+                
+        # 3. Calculamos el saldo neto
+        saldo_actual = total_ingresos - total_gastos
+        
+        # 4. Modificamos el texto de las etiquetas existentes
+        # El :.2f sirve para que siempre muestre dos decimales (ej: $150.50)
+        label_ingreso.configure(text=f"Ingresos: ${total_ingresos:.2f}")
+        label_gastos.configure(text=f"Gastos: ${total_gastos:.2f}")
+        label_saldo.configure(text=f"Saldo Actual: ${saldo_actual:.2f}")
+        
+    except Exception as e:
+        print(f"Error al actualizar los totales: {e}")
+
 
 
 # Botón para guardar
@@ -153,6 +199,9 @@ btn_ver_bd = ctk.CTkButton(
     hover_color="darkgray"
 )
 btn_ver_bd.pack(pady=5)
+
+# Llamamos a la función aquí para que cargue los datos guardados al abrir la app
+actualizar_pantalla_totales()
 
 # Ejecuta la ventana
 app.mainloop()
