@@ -1,5 +1,7 @@
 import customtkinter as ctk #libreria para el gui
 from tkinter import messagebox # Importamos las ventanas de alerta
+import database
+import debug
 
 #establece los colores de la interfaz
 ctk.set_appearance_mode("dark")
@@ -113,10 +115,25 @@ def validar_y_guardar():
         messagebox.showerror("Error de formato", "El monto debe ser un número válido. (Ej. 150 o 150.50)")
         return
 
-    # 4. Mensaje de éxito temporal
-    messagebox.showinfo("¡Perfecto!", f"Datos listos para la BD:\nTipo: {tipo}\nCategoría: {categoria}\nMonto: ${monto_numerico}\nDescripción: {descripcion}")
+    # 4. Si los datos son válidos, los guardamos en la base de datos
+    try:
+        # Llamamos a la función del archivo database.py
+        database.guardar_movimiento(tipo, categoria, monto_numerico, descripcion)
+        
+        # Avisamos al usuario que se guardó con éxito
+        messagebox.showinfo("Éxito", "¡Movimiento guardado correctamente!")
+        
+        # OPCIONAL: Limpiar los campos para que el usuario pueda ingresar otro movimiento
+        entry_monto.delete(0, 'end')
+        entry_descripcion.delete(0, 'end')
+        combo_categoria.set("Selecciona una categoría")
+        
+    except Exception as e:
+        # Por si ocurre algún error inesperado con el archivo o la BD
+        messagebox.showerror("Error de Base de Datos", f"No se pudo guardar el movimiento: {e}")
 
 # ==========================================
+
 
 # Botón para guardar
 btn_guardar = ctk.CTkButton(
@@ -125,6 +142,17 @@ btn_guardar = ctk.CTkButton(
     command=validar_y_guardar
 )
 btn_guardar.pack(pady=15)
+
+# Botón temporal para ver la BD (conectado al nuevo módulo)
+btn_ver_bd = ctk.CTkButton(
+    form_frame,
+    text="Ver Base de Datos (Debug)",
+    # Usamos lambda para poder pasarle la variable 'app' sin que se ejecute al instante
+    command=lambda: debug.mostrar_ventana(app), 
+    fg_color="gray", 
+    hover_color="darkgray"
+)
+btn_ver_bd.pack(pady=5)
 
 # Ejecuta la ventana
 app.mainloop()
