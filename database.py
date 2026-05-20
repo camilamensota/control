@@ -51,3 +51,26 @@ def obtener_movimientos():
     """)
 
     return cursor.fetchall()
+
+# ==========================================
+# OBTENER LOS TOTALES (INGRESOS, GASTOS Y SALDO)
+# ==========================================
+def obtener_totales():
+    # Usamos 'with' para abrir y cerrar la conexión de forma segura
+    with sqlite3.connect("gastos.db") as conexion:
+        cursor = conexion.cursor()
+        
+        # Sumamos todos los montos donde el tipo sea 'Ingreso'
+        cursor.execute("SELECT SUM(monto) FROM movimientos WHERE tipo='Ingreso'")
+        # Si la suma da None (porque no hay ingresos aún), le asignamos 0.0
+        total_ingresos = cursor.fetchone()[0] or 0.0 
+        
+        # Sumamos todos los montos donde el tipo sea 'Gasto'
+        cursor.execute("SELECT SUM(monto) FROM movimientos WHERE tipo='Gasto'")
+        total_gastos = cursor.fetchone()[0] or 0.0
+        
+        # Calculamos el saldo final
+        saldo_actual = total_ingresos - total_gastos
+        
+        # Devolvemos los 3 valores para que tu main.py los use
+        return total_ingresos, total_gastos, saldo_actual
