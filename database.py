@@ -21,9 +21,9 @@ CREATE TABLE IF NOT EXISTS movimientos (
 
 conexion.commit()
 
-# =========================
+
 # FUNCIÓN PARA GUARDAR
-# =========================
+
 
 def guardar_movimiento(tipo, categoria, monto, descripcion):
 
@@ -52,9 +52,9 @@ def obtener_movimientos():
 
     return cursor.fetchall()
 
-# ==========================================
+
 # OBTENER LOS TOTALES (INGRESOS, GASTOS Y SALDO)
-# ==========================================
+
 def obtener_totales():
     # Usamos 'with' para abrir y cerrar la conexión de forma segura
     with sqlite3.connect("gastos.db") as conexion:

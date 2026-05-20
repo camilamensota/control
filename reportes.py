@@ -1,9 +1,9 @@
 import customtkinter as ctk
-import database # Importamos tu base de datos para leer los movimientos reales
+import database # Importamos la base de datos
 from tkinter import messagebox
 
 def mostrar_ventana_reportes(app_principal):
-    # 1. Escondemos la ventana del menú principal
+    # Esconde la ventana del menú principal
     app_principal.withdraw()
 
     # 2. Creamos la ventana de reportes
@@ -14,28 +14,26 @@ def mostrar_ventana_reportes(app_principal):
     # Aseguramos que la ventana aparezca al frente
     ventana_reportes.attributes('-topmost', True)
 
-    # Función para cerrar esta ventana y regresar de forma segura
+    # Función para cerrar esta ventana y regresar
     def volver_al_menu():
         ventana_reportes.destroy()
         app_principal.deiconify()
 
     ventana_reportes.protocol("WM_DELETE_WINDOW", volver_al_menu)
 
-    # Título de la sección
+    # Título
     titulo = ctk.CTkLabel(ventana_reportes, text="Dashboard de Reportes", font=("Arial", 24, "bold"))
     titulo.pack(pady=15)
 
-    # Traemos la matemática resuelta desde la base de datos
+    # Obtener datos de base de datos
     try:
         total_ingresos, total_gastos, _ = database.obtener_totales()
     except Exception as e:
         total_ingresos, total_gastos = 0.0, 0.0
         messagebox.showerror("Error", f"No se pudieron cargar los totales: {e}")
 
-    # ==========================================
-    # CUADROS SUPERIORES (ALINEACIÓN HORIZONTAL)
-    # ==========================================
-    # Creamos un contenedor invisible para meter las dos tarjetas de lado a lado
+
+    # Contenedor invisible para meter las dos tarjetas de lado a lado
     frame_tarjetas = ctk.CTkFrame(ventana_reportes, fg_color="transparent")
     frame_tarjetas.pack(pady=15)
 
@@ -46,21 +44,21 @@ def mostrar_ventana_reportes(app_principal):
     def consultar_grafica_gastos():
         messagebox.showinfo("Próximamente", "Aquí se desplegará la gráfica analítica de GASTOS (Estilo Mercado Pago).")
 
-    # Cuadro/Botón de Ingresos
+    # Botón de Ingresos
     btn_tarjeta_ingresos = ctk.CTkButton(
         frame_tarjetas,
         text=f"Total Ingresos\n\n${total_ingresos:.2f}",
         font=("Arial", 16, "bold"),
         width=250,
         height=100,
-        fg_color="#1b5e20", # Verde oscuro
+        fg_color="#1b5e20", 
         hover_color="#2e7d32",
         command=consultar_grafica_ingresos
     )
-    # Al usar side="left", se acomoda a la izquierda dentro de su contenedor
+     
     btn_tarjeta_ingresos.pack(side="left", padx=20)
 
-    # Cuadro/Botón de Gastos
+    # Botón de Gastos
     btn_tarjeta_gastos = ctk.CTkButton(
         frame_tarjetas,
         text=f"Total Gastos\n\n${total_gastos:.2f}",
@@ -71,13 +69,13 @@ def mostrar_ventana_reportes(app_principal):
         hover_color="#c62828",
         command=consultar_grafica_gastos
     )
-    # Al usar side="left" también, se coloca inmediatamente a la derecha del anterior
+    
     btn_tarjeta_gastos.pack(side="left", padx=20)
 
 
-    # ==========================================
+
     # LISTA DE MOVIMIENTOS (PARTE INFERIOR)
-    # ==========================================
+
     lbl_historial = ctk.CTkLabel(ventana_reportes, text="Historial Completo de Movimientos", font=("Arial", 16, "bold"))
     lbl_historial.pack(pady=(25, 5))
 
@@ -135,9 +133,9 @@ def mostrar_ventana_reportes(app_principal):
         lbl_error.pack(pady=20)
 
 
-    # ==========================================
+    
     # BOTÓN DE RETORNO
-    # ==========================================
+    
     btn_volver = ctk.CTkButton(
         ventana_reportes, 
         text="Volver al Menú Principal", 

@@ -6,11 +6,11 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 def mostrar_graficas(app_principal):
-    # 1. Crear ventana secundaria (Toplevel)
+    #Crear ventana secundaria (Toplevel)
     ventana_graficas = ctk.CTkToplevel(app_principal)
     ventana_graficas.title("Panel de Control Estadístico")
     
-    # Aumentamos el ancho (1150) para que quepan las 3 gráficas cómodamente
+    #Ancho de ventana
     ventana_graficas.geometry("1350x650")
     ventana_graficas.attributes("-topmost", True)
 
@@ -34,7 +34,7 @@ def mostrar_graficas(app_principal):
         ctk.CTkButton(ventana_graficas, text="Volver al Menú Principal", command=al_cerrar).pack()
         return
 
-    # 3. Procesar los datos (Ingresos y Gastos por categoría)
+    #Procesar los datos (Ingresos y Gastos por categoría)
     total_ingresos = 0.0
     total_gastos = 0.0
     gastos_por_categoria = {}
@@ -50,21 +50,21 @@ def mostrar_graficas(app_principal):
             total_gastos += monto
             gastos_por_categoria[categoria] = gastos_por_categoria.get(categoria, 0) + monto
 
-    # 4. Configurar Matplotlib con 3 columnas (1 fila, 3 ejes)
+    #Configurar Matplotlib con 3 columnas para las 3 graficas
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
     plt.subplots_adjust(wspace=0.4)
     fig.patch.set_facecolor("#242424")
 
-    # --- GRÁFICA 1: BALANCE GENERAL (Barras) ---
+    # GRÁFICA 1: BALANCE GENERAL (Barras)
     ax1.bar(["Ingresos", "Gastos"], [total_ingresos, total_gastos], color=["#1f6aa5", "#bd3a3a"], width=0.6)
     ax1.set_title("Balance General ($)", color="white", fontsize=12, fontweight="bold")
     ax1.set_facecolor("#2b2b2b")
     ax1.tick_params(colors="white")
     ax1.grid(True, linestyle="--", alpha=0.1, color="white")
 
-    # --- GRÁFICA 2: DISTRIBUCIÓN DE INGRESOS (Pastel) ---
+    # GRÁFICA 2: DISTRIBUCIÓN DE INGRESOS (Pastel)
     if ingresos_por_categoria:
-        # Usamos una paleta de colores verdes/azules para ingresos
+
         wedges2, texts2, autotexts2 = ax2.pie(
             list(ingresos_por_categoria.values()),
             labels=list(ingresos_por_categoria.keys()),
@@ -77,9 +77,9 @@ def mostrar_graficas(app_principal):
         ax2.text(0.5, 0.5, "Sin ingresos", color="white", ha="center")
         ax2.axis("off")
 
-    # --- GRÁFICA 3: DISTRIBUCIÓN DE GASTOS (Pastel) ---
+    # GRÁFICA 3: DISTRIBUCIÓN DE GASTOS (Pastel)
     if gastos_por_categoria:
-        # Usamos colores variados para gastos
+        
         wedges3, texts3, autotexts3 = ax3.pie(
             list(gastos_por_categoria.values()),
             labels=list(gastos_por_categoria.keys()),
@@ -92,15 +92,15 @@ def mostrar_graficas(app_principal):
         ax3.text(0.5, 0.5, "Sin gastos", color="white", ha="center")
         ax3.axis("off")
 
-    # Ajustar espacios entre gráficas
+    # Espacios entre gráficas
     plt.tight_layout()
 
-    # 5. Incrustar en CustomTkinter
+    # Incrustar en CustomTkinter
     canvas = FigureCanvasTkAgg(fig, master=ventana_graficas)
     canvas.draw()
     canvas.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=10)
 
-    # --- BOTÓN VOLVER ---
+    # BOTÓN VOLVER AL MENU
     btn_volver = ctk.CTkButton(
         ventana_graficas, 
         text="Volver al Menú Principal", 

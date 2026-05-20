@@ -40,9 +40,9 @@ label_gastos.pack(pady=10)
 label_saldo = ctk.CTkLabel(header_frame, text="Saldo Actual: $0", font=("Arial", 24))
 label_saldo.pack(pady=10)
 
-# ==========================================
-# LISTAS DE CATEGORÍAS Y FUNCIÓN DINÁMICA
-# ==========================================
+
+# LISTAS DE CATEGORÍAS Y FUNCIÓN DINÁMICA QUE DEPENDE DE GASTO/INGRESO
+
 categorias_gastos = [
     "Comida y bebidas", "Supermercado", "Transporte", "Comisiones y cargos", 
     "Créditos y financiación", "Cuentas y servicios", "Deportes", "Donaciones", 
@@ -58,7 +58,7 @@ categorias_ingresos = [
 ]
 
 def cambiar_categorias_dinamicas(seleccion):
-    # Cambiamos las opciones del combobox de categorías según lo elegido
+    # Cambiamos las opciones las boxes de categorías según lo elegido
     if seleccion == "Ingreso":
         combo_categoria.configure(values=categorias_ingresos)
     elif seleccion == "Gasto":
@@ -67,9 +67,9 @@ def cambiar_categorias_dinamicas(seleccion):
     # Reiniciamos el texto por defecto para forzar la selección
     combo_categoria.set("Selecciona una categoría")
 
-# ==========================================
 
-#ComboBox para tipo
+
+# Tipo
 combo_tipo = ctk.CTkComboBox(
     form_frame,
     values=["Ingreso", "Gasto"],
@@ -80,7 +80,7 @@ combo_tipo = ctk.CTkComboBox(
 combo_tipo.set("Ingreso")
 combo_tipo.pack(pady=10)
 
-#ComboBox para categoria (Iniciamos con las de ingresos por el valor por defecto)
+#Caja para categoria, iniciamos con las de ingresos por el valor por defecto
 combo_categoria = ctk.CTkComboBox(
     form_frame,
     values=categorias_ingresos,
@@ -106,26 +106,26 @@ entry_descripcion = ctk.CTkEntry(
 )
 entry_descripcion.pack(pady=10)
 
-# ==========================================
+
 # FUNCIÓN DE VALIDACIÓN
-# ==========================================
+
 def validar_y_guardar():
     tipo = combo_tipo.get()
     categoria = combo_categoria.get()
     monto_texto = entry_monto.get()
     descripcion = entry_descripcion.get()
 
-    # 1. Validamos la categoría estricta para AMBOS (Ingreso y Gasto)
+    # Validamos la categoría estricta para AMBOS (Ingreso y Gasto)
     if categoria == "Selecciona una categoría" or categoria == "":
         messagebox.showwarning("Faltan datos", f"Por favor, selecciona una categoría para el {tipo.lower()}.")
         return
 
-    # 2. Validamos que el monto no esté vacío
+    # Validamos que el monto no esté vacío
     if monto_texto == "":
         messagebox.showwarning("Faltan datos", "Por favor, ingresa un monto.")
         return
 
-    # 3. Validamos que el monto sea un número válido
+    # Validamos que el monto sea un número válido
     try:
         monto_numerico = float(monto_texto)
         if monto_numerico <= 0:
@@ -135,7 +135,7 @@ def validar_y_guardar():
         messagebox.showerror("Error de formato", "El monto debe ser un número válido. (Ej. 150 o 150.50)")
         return
     
-    # ==========================================
+    
     #Aquí evitamos gastar dinero que no tenemos
     if tipo == "Gasto":
         # Traemos los números actuales desde la base de datos
@@ -145,9 +145,9 @@ def validar_y_guardar():
         if monto_numerico > saldo_actual:
             messagebox.showerror("Fondos insuficientes", f"No puedes registrar este gasto.\n\nTu saldo actual es de ${saldo_actual:.2f}\nIntentas gastar: ${monto_numerico:.2f}")
             return # El return frena la función y evita que se guarde
-    # ==========================================
+    
 
-    # 4. Si los datos son válidos, los guardamos en la base de datos
+    # Si los datos son válidos, los guardamos en la base de datos
     try:
         # Llamamos a la función del archivo database.py
         database.guardar_movimiento(tipo, categoria, monto_numerico, descripcion)
@@ -166,17 +166,17 @@ def validar_y_guardar():
     except Exception as e:
         messagebox.showerror("Error de Base de Datos", f"No se pudo guardar el movimiento: {e}")
 
-# ==========================================
+
 
 def actualizar_pantalla_totales():
     try:
-        # 1. Traemos todos los registros guardados
+        # Traemos todos los registros guardados
         registros = database.obtener_movimientos()
         
         total_ingresos = 0.0
         total_gastos = 0.0
         
-        # 2. Recorremos fila por fila para hacer las sumas
+        # Recorremos fila por fila para hacer las sumas
         for fila in registros:
             tipo = fila[1]
             monto = fila[3]
@@ -186,10 +186,10 @@ def actualizar_pantalla_totales():
             elif tipo == "Gasto":
                 total_gastos += monto
                 
-        # 3. Calculamos el saldo neto
+        # Calculamos el saldo neto
         saldo_actual = total_ingresos - total_gastos
         
-        # 4. Modificamos el texto
+        # Modificamos el texto
         label_ingreso.configure(text=f"Ingresos: ${total_ingresos:.2f}")
         label_gastos.configure(text=f"Gastos: ${total_gastos:.2f}")
         label_saldo.configure(text=f"Saldo Actual: ${saldo_actual:.2f}")
@@ -197,9 +197,9 @@ def actualizar_pantalla_totales():
     except Exception as e:
         print(f"Error al actualizar los totales: {e}")
 
-# =========================================================
+
 # ZONA DE BOTONES
-# =========================================================
+
 
 # Botón para guardar
 btn_guardar = ctk.CTkButton(
@@ -209,7 +209,7 @@ btn_guardar = ctk.CTkButton(
 )
 btn_guardar.pack(pady=15)
 
-# Botón de tu compañero (Reportes)
+# Botón de Reportes
 btn_actividad = ctk.CTkButton(
     form_frame,
     text="Ver Actividad (Reportes)",
@@ -219,7 +219,7 @@ btn_actividad = ctk.CTkButton(
 )
 btn_actividad.pack(pady=5)
 
-# Botón tuyo (Gráficas)
+# Botón Gráficas
 btn_ver_graficas = ctk.CTkButton(
     form_frame,
     text="Ver Gráficas Estadísticas",
@@ -229,7 +229,7 @@ btn_ver_graficas = ctk.CTkButton(
 )
 btn_ver_graficas.pack(pady=5)
 
-# Botón temporal para ver la BD (Debug)
+# Botónpara ver la BD
 btn_ver_bd = ctk.CTkButton(
     form_frame,
     text="Ver Base de Datos (Debug)",

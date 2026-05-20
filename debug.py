@@ -1,7 +1,7 @@
 import customtkinter as ctk
-import database # Importamos tu base de datos aquí también
+import database # Importamos la base de datos
 
-# Le agregamos un parámetro (app_principal) para que reciba tu ventana desde el main
+# Le agregamos un parámetro (app_principal) para que reciba la ventana desde el main
 def mostrar_ventana(app_principal):
     # 1. Creamos la ventana secundaria
     ventana_bd = ctk.CTkToplevel(app_principal)
@@ -9,11 +9,11 @@ def mostrar_ventana(app_principal):
     ventana_bd.geometry("600x400")
     ventana_bd.attributes('-topmost', True)
 
-    # 2. Caja de texto
+    #Caja de texto
     caja_texto = ctk.CTkTextbox(ventana_bd, width=550, height=350)
     caja_texto.pack(pady=20)
 
-    # 3. Leer base de datos
+    #Leer base de datos
     try:
         registros = database.obtener_movimientos()
         
