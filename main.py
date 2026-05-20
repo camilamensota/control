@@ -2,6 +2,7 @@ import customtkinter as ctk #libreria para el gui
 from tkinter import messagebox # Importamos las ventanas de alerta
 import database
 import debug
+import graficas
 
 #establece los colores de la interfaz
 ctk.set_appearance_mode("dark")
@@ -38,18 +39,10 @@ label_gastos.pack(pady=10)
 label_saldo = ctk.CTkLabel(header_frame, text="Saldo Actual: $0", font=("Arial", 24))
 label_saldo.pack(pady=10)
 
-#ComboBox para tipo
-combo_tipo = ctk.CTkComboBox(
-    form_frame,
-    values=["Ingreso", "Gasto"],
-    width=300,
-    state="readonly"
-)
-combo_tipo.set("Ingreso")
-combo_tipo.pack(pady=10)
-
-#ComboBox para categoria
-lista_categorias = [
+# ==========================================
+# LISTAS DE CATEGORÍAS Y FUNCIÓN DINÁMICA
+# ==========================================
+categorias_gastos = [
     "Comida y bebidas", "Supermercado", "Transporte", "Comisiones y cargos", 
     "Créditos y financiación", "Cuentas y servicios", "Deportes", "Donaciones", 
     "Educación", "Electrónica", "Entretenimiento", "Hogar", "Impuestos", 
@@ -59,9 +52,37 @@ lista_categorias = [
     "Viajes", "Otro"
 ]
 
+categorias_ingresos = [
+    "Trabajo / Sueldo", "Negocio", "Inversiones", "Ventas", "Freelance", "Regalos", "Otro"
+]
+
+def cambiar_categorias_dinamicas(seleccion):
+    # Cambiamos las opciones del combobox de categorías según lo elegido
+    if seleccion == "Ingreso":
+        combo_categoria.configure(values=categorias_ingresos)
+    elif seleccion == "Gasto":
+        combo_categoria.configure(values=categorias_gastos)
+    
+    # Reiniciamos el texto por defecto para forzar la selección
+    combo_categoria.set("Selecciona una categoría")
+
+# ==========================================
+
+#ComboBox para tipo
+combo_tipo = ctk.CTkComboBox(
+    form_frame,
+    values=["Ingreso", "Gasto"],
+    width=300,
+    state="readonly",
+    command=cambiar_categorias_dinamicas # Llama a la función al cambiar
+)
+combo_tipo.set("Ingreso")
+combo_tipo.pack(pady=10)
+
+#ComboBox para categoria (Iniciamos con las de ingresos por el valor por defecto)
 combo_categoria = ctk.CTkComboBox(
     form_frame,
-    values=lista_categorias,
+    values=categorias_ingresos,
     width=300,
     state="readonly"
 )
@@ -93,15 +114,10 @@ def validar_y_guardar():
     monto_texto = entry_monto.get()
     descripcion = entry_descripcion.get()
 
-    # 1. Validamos la categoría SOLO si es un Gasto
-    if tipo == "Gasto":
-        if categoria == "Selecciona una categoría" or categoria == "":
-            messagebox.showwarning("Faltan datos", "Por favor, selecciona una categoría para el gasto.")
-            return
-    else:
-        # Si es un Ingreso y dejaron el texto por defecto, lo limpiamos
-        if categoria == "Selecciona una categoría":
-            categoria = "Sin categoría" # O puedes dejarlo como "" (vacío) si lo prefieres
+    # 1. Validamos la categoría estricta para AMBOS (Ingreso y Gasto)
+    if categoria == "Selecciona una categoría" or categoria == "":
+        messagebox.showwarning("Faltan datos", f"Por favor, selecciona una categoría para el {tipo.lower()}.")
+        return
 
     # 2. Validamos que el monto no esté vacío
     if monto_texto == "":
@@ -126,31 +142,22 @@ def validar_y_guardar():
         # Avisamos al usuario que se guardó con éxito
         messagebox.showinfo("Éxito", "¡Movimiento guardado correctamente!")
         
-        # OPCIONAL: Limpiar los campos para que el usuario pueda ingresar otro movimiento
+        # Limpiar los campos para el siguiente registro
         entry_monto.delete(0, 'end')
         entry_descripcion.delete(0, 'end')
         combo_categoria.set("Selecciona una categoría")
         
-    except Exception as e:
-        # Por si ocurre algún error inesperado con el archivo o la BD
-        messagebox.showerror("Error de Base de Datos", f"No se pudo guardar el movimiento: {e}")
-
-    try:
-        #Limpias los campos de texto para el siguiente registro
-        entry_monto.delete(0, 'end')
-        entry_descripcion.delete(0, 'end')
-        
-        # ¡AQUÍ! Llamas a la función para que los números de arriba se actualicen al instante
+        # Actualizamos la pantalla de totales
         actualizar_pantalla_totales()
         
     except Exception as e:
-        messagebox.showerror("Error", f"No se pudo guardar: {e}")
+        messagebox.showerror("Error de Base de Datos", f"No se pudo guardar el movimiento: {e}")
 
 # ==========================================
 
 def actualizar_pantalla_totales():
     try:
-        # 1. Traemos todos los registros guardados usando tu módulo database
+        # 1. Traemos todos los registros guardados
         registros = database.obtener_movimientos()
         
         total_ingresos = 0.0
@@ -158,7 +165,6 @@ def actualizar_pantalla_totales():
         
         # 2. Recorremos fila por fila para hacer las sumas
         for fila in registros:
-            # Según tu BD: fila[1] es el 'tipo' y fila[3] es el 'monto'
             tipo = fila[1]
             monto = fila[3]
             
@@ -170,16 +176,13 @@ def actualizar_pantalla_totales():
         # 3. Calculamos el saldo neto
         saldo_actual = total_ingresos - total_gastos
         
-        # 4. Modificamos el texto de las etiquetas existentes
-        # El :.2f sirve para que siempre muestre dos decimales (ej: $150.50)
+        # 4. Modificamos el texto
         label_ingreso.configure(text=f"Ingresos: ${total_ingresos:.2f}")
         label_gastos.configure(text=f"Gastos: ${total_gastos:.2f}")
         label_saldo.configure(text=f"Saldo Actual: ${saldo_actual:.2f}")
         
     except Exception as e:
         print(f"Error al actualizar los totales: {e}")
-
-
 
 # Botón para guardar
 btn_guardar = ctk.CTkButton(
@@ -189,16 +192,28 @@ btn_guardar = ctk.CTkButton(
 )
 btn_guardar.pack(pady=15)
 
-# Botón temporal para ver la BD (conectado al nuevo módulo)
+# Botón temporal para ver la BD
 btn_ver_bd = ctk.CTkButton(
     form_frame,
     text="Ver Base de Datos (Debug)",
-    # Usamos lambda para poder pasarle la variable 'app' sin que se ejecute al instante
     command=lambda: debug.mostrar_ventana(app), 
     fg_color="gray", 
     hover_color="darkgray"
 )
 btn_ver_bd.pack(pady=5)
+
+# =========================================================
+# BOTÓN DE GRÁFICAS
+# =========================================================
+btn_ver_graficas = ctk.CTkButton(
+    form_frame,
+    text="Ver Gráficas Estadísticas",
+    command=lambda: graficas.mostrar_graficas(app),
+    fg_color="#2b719e",
+    hover_color="#1f5070"
+)
+btn_ver_graficas.pack(pady=5)
+# =========================================================
 
 # Llamamos a la función aquí para que cargue los datos guardados al abrir la app
 actualizar_pantalla_totales()
